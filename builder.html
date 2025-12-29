@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Lego World</title>
+  <style>
+    body {
+      font-family: Arial;
+      text-align: center;
+      background: linear-gradient(to bottom, #fff176, #ffffff);
+    }
+
+    h1, h2 { color: #333; }
+
+    .lego-color {
+      width: 40px;
+      height: 40px;
+      display: inline-block;
+      margin: 4px;
+      border-radius: 6px;
+      border: 2px solid #999;
+      cursor: pointer;
+    }
+
+    #lego-world {
+      width: 90%;
+      height: 400px;
+      margin: 20px auto;
+      border: 2px dashed #555;
+      background-color: #e0e0e0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .lego-piece {
+      position: absolute;
+      cursor: grab;
+    }
+
+    .rect, .square {
+      border: 2px solid #555;
+      box-shadow: 0 5px 0 #ccc, 0 0 6px rgba(0,0,0,0.2);
+    }
+
+    .top-bump {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      position: absolute;
+      top: -10px;
+      background: inherit;
+      box-shadow: inset -1px -1px rgba(0,0,0,0.2);
+    }
+
+    .controls { margin: 10px; }
+    .controls select, .controls button { font-size: 16px; padding: 6px; }
+
+    #congrats-message {
+      color: green;
+      display: none;
+      margin: 10px 0;
+      font-weight: bold;
+    }
+
+    #save-button {
+      margin: 10px;
+      font-size: 16px;
+      padding: 8px 12px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Yassin's Lego World 🧱</h1>
+
+<h2>Pick a Color</h2>
+<div id="colors"></div>
+
+<h2>Choose Piece Type</h2>
+<div class="controls">
+  <select id="piece-type">
+    <option value="rect">Rectangle</option>
+    <option value="square">Square</option>
+  </select>
+  <button id="delete-mode">Delete Mode: OFF</button>
+</div>
+
+<h2 id="congrats-message"></h2>
+
+<button id="save-button">Save Picture</button>
+
+<h2>Lego World</h2>
+<div id="lego-world"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<script>
+const colors = [
+  'red','blue','yellow','green','orange','white','black','gray',
+  'purple','pink','brown','tan','lime','lightblue','lightgreen',
+  'magenta','cyan','darkred','darkblue','gold'
+];
+
+const legoWorld = document.getElementById('lego-world');
+const colorsDiv = document.getElementById('colors');
+let selectedColor = 'red';
+let deleteMode = false;
+let selectedType = 'rect';
+let pieceCount = 0;
+
+// Color picker
+colors.forEach(color => {
+  const div = document.createElement('div');
+  div.className = 'lego-color';
+  div.style.backgroundColor = color;
+  div.onclick = () => selectedColor = color;
+  colorsDiv.appendChild(div);
+});
+
+// Piece type
+document.getElementById('piece-type').onchange = e => {
+  selectedType = e.target.value;
+};
+
+// Delete mode
+const deleteBtn = document.getElementById('delete-mode');
+deleteBtn.onclick = () => {
+  deleteMode = !deleteMode;
+  deleteBtn.textContent = `Delete Mode: ${deleteMode ? 'ON' : 'OFF'}`;
+};
+
+// Create piece
+function createPiece(x, y) {
+  const piece = document.createElement('div');
+  piece.className = 'lego-piece';
+  piece.style.left = x + 'px';
+  piece.style.top = y + 'px';
+
+  if (selectedType === 'rect') {
+    piece.classList.add('rect');
+    piece.style.width = '80px';
+    piece.style.height = '40px';
+    piece.style.backgroundColor = selectedColor;
+
+    addBumps(piece, 2);
+  }
+
+  if (selectedType === 'square') {
+    piece.classList.add('square');
+    piece.style.width = '40px';
+    piece.style.height = '40px';
+    piece.style.backgroundColor = selectedColor;
+
+    addBumps(piece, 1);
+  }
+
+  if (selectedType === 'triangle') {
+    piece.style.width = '0';
+    piece.style.height = '0';
+    piece.style.borderLeft = '20px solid transparent';
+    piece.style.borderRight = '20px solid transparent';
+    piece.style.borderBottom = `40px solid ${selectedColor}`;
+    piece.style.filter = 'drop-shadow(0 5px 0 #ccc)';
+  }
+
+  if (selectedType === 'circle') {
+    piece.style.width = '40px';
+    piece.style.height = '40px';
+    piece.style.borderRadius = '50%';
+    piece.style.backgroundColor = selectedColor;
+    piece.style.border = '2px solid #555';
+    piece.style.boxShadow = '0 5px 0 #ccc';
+  }
+
+  piece.onmousedown = e => {
+    if (deleteMode) {
+      legoWorld.removeChild(piece);
+      pieceCount--;
+      return;
+    }
+    dragStart(e, piece);
+  };
+
+  legoWorld.appendChild(piece);
+  pieceCount++;
+  checkMilestones();
+}
+
+// Lego bumps
+function addBumps(piece, count) {
+  for (let i = 0; i < count; i++) {
+    const bump = document.createElement('div');
+    bump.className = 'top-bump';
+    bump.style.left = (10 + i * 25) + 'px';
+    bump.style.backgroundColor = selectedColor;
+    piece.appendChild(bump);
+  }
+}
+
+// Milestones
+function checkMilestones() {
+  const msg = document.getElementById('congrats-message');
+  const select = document.getElementById('piece-type');
+
+  if (pieceCount === 10 && !select.querySelector('[value="triangle"]')) {
+    msg.style.display = 'block';
+    msg.textContent = '🎉 Triangle unlocked!';
+    select.add(new Option('Triangle', 'triangle'));
+  }
+
+  if (pieceCount === 20 && !select.querySelector('[value="circle"]')) {
+    msg.style.display = 'block';
+    msg.textContent = '🎉 All shapes unlocked!';
+    select.add(new Option('Circle', 'circle'));
+  }
+}
+
+// Click to add
+legoWorld.onclick = e => {
+  if (e.target === legoWorld) {
+    const r = legoWorld.getBoundingClientRect();
+    createPiece(e.clientX - r.left - 20, e.clientY - r.top - 20);
+  }
+};
+
+// Drag logic
+let dragItem = null, ox = 0, oy = 0;
+
+function dragStart(e, item) {
+  dragItem = item;
+  ox = e.offsetX;
+  oy = e.offsetY;
+  document.onmousemove = dragMove;
+  document.onmouseup = dragEnd;
+}
+
+function dragMove(e) {
+  if (!dragItem) return;
+  const r = legoWorld.getBoundingClientRect();
+  dragItem.style.left = (e.clientX - r.left - ox) + 'px';
+  dragItem.style.top = (e.clientY - r.top - oy) + 'px';
+}
+
+function dragEnd() {
+  dragItem = null;
+  document.onmousemove = null;
+  document.onmouseup = null;
+}
+
+// Save picture (local computer)
+document.getElementById('save-button').onclick = () => {
+  html2canvas(legoWorld).then(canvas => {
+    const link = document.createElement('a');
+    link.href = canvas.toDataURL('image/png');
+    link.download = 'lego-world.png';
+    link.click();
+  });
+};
+</script>
+
+</body>
+</html>

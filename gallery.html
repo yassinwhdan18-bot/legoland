@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Lego Gallery</title>
+  <style>
+    body {
+      font-family: Arial;
+      text-align: center;
+      background: linear-gradient(to bottom, #fff176, #ffffff);
+      margin: 0;
+      padding: 0;
+    }
+
+    h1 {
+      color: #333;
+      margin: 20px;
+    }
+
+    #gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 10px;
+      padding: 20px;
+      max-width: 1000px;
+      margin: auto;
+    }
+
+    .gallery-item {
+      position: relative;
+      cursor: pointer;
+    }
+
+    .gallery-item img {
+      width: 100%;
+      border-radius: 8px;
+      border: 2px solid #555;
+      transition: transform 0.2s;
+    }
+
+    .gallery-item img:hover {
+      transform: scale(1.05);
+    }
+
+    #overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.8);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    #overlay img {
+      max-width: 90%;
+      max-height: 90%;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Yassin's Lego Gallery 🖼️</h1>
+
+<div id="gallery"></div>
+
+<div id="overlay" onclick="hideOverlay()">
+  <img id="overlay-img" src="">
+</div>
+
+<script>
+  const gallery = document.getElementById('gallery');
+  const overlay = document.getElementById('overlay');
+  const overlayImg = document.getElementById('overlay-img');
+
+  const images = [
+    'lego1.png',
+    'lego2.png',
+    'lego3.png',
+    'lego4.png'
+  ];
+
+  images.forEach(src => {
+    const div = document.createElement('div');
+    div.className = 'gallery-item';
+    const img = document.createElement('img');
+    img.src = src;
+    img.alt = "Lego";
+    img.addEventListener('click', () => {
+      overlayImg.src = src;
+      overlay.style.display = 'flex';
+    });
+    div.appendChild(img);
+    gallery.appendChild(div);
+  });
+
+  function hideOverlay() {
+    overlay.style.display = 'none';
+  }
+</script>
+
+</body>
+</html>
